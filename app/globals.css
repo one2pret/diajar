@@ -148,6 +148,9 @@
 
   --color-muted: var(--color-bg-muted);
   --color-muted-foreground: var(--color-text-secondary);
+  --color-subtle: var(--color-bg-subtle);
+  --color-primary-subtle: var(--color-primary-subtle);
+  --color-border-strong: var(--color-border-strong);
   --color-accent: var(--color-primary-subtle);
   --color-accent-foreground: var(--color-primary);
 

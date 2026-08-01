@@ -1,0 +1,86 @@
+/* Token & utility khusus varian landing v2 (neo-brutalist chunky) — HANYA dipakai di /v2.
+   Tidak menyentuh token global di app/globals.css supaya v1 tetap utuh. */
+
+:root {
+  --v2-bg: #fdf8ec;
+  --v2-ink: #1b1b2f;
+  --v2-primary: #22c55e;
+  --v2-primary-hover: #16a34a;
+  --v2-on-primary: #ffffff;
+  --v2-secondary: #a6ddea;
+  --v2-secondary-hover: #8fd0e0;
+  --v2-card: #ffffff;
+  --v2-muted: #f4efe1;
+  --v2-muted-foreground: #55536b;
+  --v2-border: 3px solid var(--v2-ink);
+  --v2-radius: 20px;
+  --v2-radius-pill: 999px;
+  --v2-shadow-sm: 4px 4px 0 var(--v2-ink);
+  --v2-shadow-md: 6px 6px 0 var(--v2-ink);
+  --v2-shadow-lg: 8px 8px 0 var(--v2-ink);
+}
+
+.v2-root {
+  background: var(--v2-bg);
+  color: var(--v2-ink);
+  font-family: var(--font-v2-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+.v2-heading {
+  font-family: var(--font-v2-heading), ui-rounded, ui-sans-serif, system-ui, sans-serif;
+}
+
+.v2-card {
+  background: var(--v2-card);
+  border: var(--v2-border);
+  border-radius: var(--v2-radius);
+  box-shadow: var(--v2-shadow-md);
+}
+
+.v2-btn {
+  border: var(--v2-border);
+  border-radius: var(--v2-radius);
+  box-shadow: var(--v2-shadow-sm);
+  font-weight: 700;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.v2-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--v2-ink);
+}
+
+.v2-btn-primary {
+  background: var(--v2-primary);
+  color: var(--v2-on-primary);
+}
+
+.v2-btn-primary:hover {
+  background: var(--v2-primary-hover);
+}
+
+.v2-btn-secondary {
+  background: var(--v2-secondary);
+  color: var(--v2-ink);
+}
+
+.v2-btn-secondary:hover {
+  background: var(--v2-secondary-hover);
+}
+
+.v2-chip {
+  border: 2px solid var(--v2-ink);
+  border-radius: var(--v2-radius-pill);
+  background: var(--v2-primary);
+  color: var(--v2-on-primary);
+  font-weight: 600;
+}
+
+.v2-hover-lift {
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.v2-hover-lift:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--v2-shadow-lg);
+}
