@@ -1,8 +1,10 @@
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
-import type { DummyTeacher } from "@/lib/dummy-data";
+import type { CourseModuleItem } from "@/lib/db/queries";
 
-export function ChannelAttribution({ teacher }: { teacher: DummyTeacher }) {
+type Teacher = NonNullable<CourseModuleItem["teacher"]>;
+
+export function ChannelAttribution({ teacher }: { teacher: Teacher }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-b-lg border border-t-0 border-border bg-subtle px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">

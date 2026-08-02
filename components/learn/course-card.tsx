@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Layers, BarChart3 } from "lucide-react";
-import type { DummyCourse } from "@/lib/dummy-data";
+import type { CourseListItem } from "@/lib/db/queries";
 import { formatLevel } from "@/lib/utils";
 
-export function CourseCard({ course }: { course: DummyCourse }) {
+export function CourseCard({ course }: { course: CourseListItem }) {
   return (
     <Link
       href={`/courses/${course.slug}`}
@@ -29,7 +29,7 @@ export function CourseCard({ course }: { course: DummyCourse }) {
         <div className="mt-auto flex items-center gap-4 pt-2 font-mono text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <Layers size={14} strokeWidth={1.75} />
-            {course.modules.length} module
+            {course.moduleCount} module
           </span>
           <span className="inline-flex items-center gap-1">
             <BarChart3 size={14} strokeWidth={1.75} />

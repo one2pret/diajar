@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { dummyCourses } from "@/lib/dummy-data";
+import { getPublishedCourses } from "@/lib/db/queries";
 import { CourseCard } from "@/components/learn/course-card";
 
 export const metadata: Metadata = {
@@ -7,7 +7,9 @@ export const metadata: Metadata = {
   description: "Jalur belajar Prompt Engineering & RAG hasil kurasi video YouTube terbaik.",
 };
 
-export default function CoursesPage() {
+export default async function CoursesPage() {
+  const courses = await getPublishedCourses();
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-2xl">
@@ -18,11 +20,11 @@ export default function CoursesPage() {
         </p>
       </div>
 
-      {dummyCourses.length === 0 ? (
+      {courses.length === 0 ? (
         <p className="mt-10 text-sm text-muted-foreground">Belum ada course tersedia.</p>
       ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {dummyCourses.map((course) => (
+          {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>

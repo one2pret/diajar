@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Layers, BarChart3 } from "lucide-react";
-import { getDummyCourseBySlug, getDummyTeacherById } from "@/lib/dummy-data";
+import { auth } from "@/lib/auth";
+import { getPublishedCourseBySlug } from "@/lib/db/queries";
 import { formatLevel } from "@/lib/utils";
 import { VideoPlayer } from "@/components/learn/video-player";
 import { ChannelAttribution } from "@/components/learn/channel-attribution";
 import { ModuleSidebar } from "@/components/learn/module-sidebar";
 import { AiChatPanel } from "@/components/learn/ai-chat-panel";
+import { MarkCompleteButton } from "@/components/learn/mark-complete-button";
 
 export async function generateMetadata({
   params,
@@ -14,7 +16,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const course = getDummyCourseBySlug(slug);
+  const course = await getPublishedCourseBySlug(slug);
   return {
     title: course ? `${course.title} — Diajar` : "Course tidak ditemukan — Diajar",
     description: course?.description,
@@ -27,14 +29,13 @@ export default async function CourseDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const course = getDummyCourseBySlug(slug);
+  const session = await auth();
+  const course = await getPublishedCourseBySlug(slug, session?.user?.id);
   if (!course) {
     notFound();
   }
 
-  const sortedModules = [...course.modules].sort((a, b) => a.orderIndex - b.orderIndex);
-  const firstModule = sortedModules[0];
-  const teacher = firstModule ? getDummyTeacherById(firstModule.teacherId) : undefined;
+  const firstModule = course.modules[0];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -63,13 +64,21 @@ export default async function CourseDetailPage({
                 youtubeVideoId={firstModule.youtubeVideoId}
                 title={firstModule.title}
               />
-              {teacher && <ChannelAttribution teacher={teacher} />}
+              {firstModule.teacher && <ChannelAttribution teacher={firstModule.teacher} />}
 
-              <div className="mt-4">
-                <h2 className="text-lg font-semibold text-foreground">{firstModule.title}</h2>
-                <p className="mt-2 text-sm leading-normal text-muted-foreground">
-                  {firstModule.curatorNote}
-                </p>
+              <div className="mt-4 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">{firstModule.title}</h2>
+                  <p className="mt-2 text-sm leading-normal text-muted-foreground">
+                    {firstModule.curatorNote}
+                  </p>
+                </div>
+                <MarkCompleteButton
+                  moduleId={firstModule.id}
+                  courseSlug={course.slug}
+                  initialCompleted={firstModule.isCompleted}
+                  isLoggedIn={!!session?.user}
+                />
               </div>
             </div>
           ) : (

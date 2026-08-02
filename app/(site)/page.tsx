@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MessagesSquare, PlaySquare, Route, Sparkles } from "lucide-react";
-import { dummyCourses } from "@/lib/dummy-data";
+import { getPublishedCourses } from "@/lib/db/queries";
 import { CourseCard } from "@/components/learn/course-card";
 
 const STEPS = [
@@ -24,8 +24,8 @@ const STEPS = [
   },
 ];
 
-export default function Home() {
-  const featuredCourses = dummyCourses;
+export default async function Home() {
+  const featuredCourses = await getPublishedCourses();
 
   return (
     <div className="flex flex-col">

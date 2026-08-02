@@ -157,6 +157,7 @@
   --color-destructive: var(--color-danger);
   --color-destructive-foreground: #ffffff;
   --color-success: var(--color-success);
+  --color-success-subtle: var(--color-success-subtle);
   --color-warning: var(--color-warning);
 
   --color-border: var(--color-border);

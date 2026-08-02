@@ -1,12 +1,12 @@
 import { CheckCircle2, Circle, PlayCircle } from "lucide-react";
-import type { DummyModule } from "@/lib/dummy-data";
+import type { CourseModuleItem } from "@/lib/db/queries";
 import { formatDuration } from "@/lib/utils";
 
 export function ModuleSidebar({
   modules,
   activeModuleId,
 }: {
-  modules: DummyModule[];
+  modules: CourseModuleItem[];
   activeModuleId: string;
 }) {
   const sorted = [...modules].sort((a, b) => a.orderIndex - b.orderIndex);
