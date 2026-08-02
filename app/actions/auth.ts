@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { AuthError } from "next-auth";
-import { signIn } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 
 const loginSchema = z.object({
   email: z.string().email("Format email tidak valid."),
@@ -97,4 +97,8 @@ export async function registerUser(
   });
 
   return { success: true };
+}
+
+export async function logoutUser() {
+  await signOut({ redirectTo: "/" });
 }

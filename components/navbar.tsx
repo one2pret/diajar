@@ -2,15 +2,27 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { GraduationCap, LogOut, Menu, X } from "lucide-react";
+import { logoutUser } from "@/app/actions/auth";
 
 const NAV_LINKS = [
   { href: "/", label: "Beranda" },
   { href: "/courses", label: "Course" },
 ];
 
-export function Navbar() {
+interface NavbarProps {
+  session: {
+    user: {
+      name?: string | null;
+      email?: string | null;
+      role?: string;
+    };
+  } | null;
+}
+
+export function Navbar({ session }: NavbarProps) {
   const [open, setOpen] = useState(false);
+  const displayName = session?.user.name || session?.user.email;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -30,21 +42,48 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
+          {session?.user.role === "admin" && (
+            <Link
+              href="/admin"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Masuk
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
-          >
-            Daftar Gratis
-          </Link>
+          {session ? (
+            <>
+              <span className="max-w-[160px] truncate text-sm font-medium text-foreground">
+                Halo, {displayName}
+              </span>
+              <form action={logoutUser}>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <LogOut size={15} strokeWidth={1.75} />
+                  Keluar
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Masuk
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+              >
+                Daftar Gratis
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -70,22 +109,49 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {session?.user.role === "admin" && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Admin
+              </Link>
+            )}
           </nav>
           <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="rounded-md px-2 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Masuk
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setOpen(false)}
-              className="rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
-            >
-              Daftar Gratis
-            </Link>
+            {session ? (
+              <>
+                <p className="truncate px-2 text-sm font-medium text-foreground">
+                  Halo, {displayName}
+                </p>
+                <form action={logoutUser}>
+                  <button
+                    type="submit"
+                    className="w-full rounded-md border border-border-strong px-4 py-2 text-center text-sm font-medium text-foreground"
+                  >
+                    Keluar
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-2 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                >
+                  Daftar Gratis
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
