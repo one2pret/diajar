@@ -33,12 +33,18 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <button className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link
+            href="/login"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
             Masuk
-          </button>
-          <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+          >
             Daftar Gratis
-          </button>
+          </Link>
         </div>
 
         <button
@@ -66,12 +72,20 @@ export function Navbar() {
             ))}
           </nav>
           <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-            <button className="rounded-md px-2 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="rounded-md px-2 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
               Masuk
-            </button>
-            <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            </Link>
+            <Link
+              href="/register"
+              onClick={() => setOpen(false)}
+              className="rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+            >
               Daftar Gratis
-            </button>
+            </Link>
           </div>
         </div>
       )}

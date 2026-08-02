@@ -47,9 +47,12 @@ export default function Home() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">
+            <Link
+              href="/register"
+              className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+            >
               Daftar Gratis
-            </button>
+            </Link>
             <Link
               href="/courses"
               className="rounded-md border border-border-strong px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
@@ -127,9 +130,12 @@ export default function Home() {
           <p className="mt-3 max-w-lg text-sm leading-normal text-muted-foreground">
             Daftar gratis, ikuti jalur belajarnya, dan pakai AI Q&amp;A kapan pun kamu buntu.
           </p>
-          <button className="mt-6 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">
+          <Link
+            href="/register"
+            className="mt-6 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+          >
             Daftar Gratis
-          </button>
+          </Link>
         </div>
       </section>
     </div>

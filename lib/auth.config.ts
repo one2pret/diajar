@@ -21,6 +21,21 @@ export const authConfig = {
       }
       return true;
     },
+    // jwt & session di sini (bukan cuma di auth.ts) karena middleware.ts pakai
+    // authConfig ini langsung untuk decode token — tanpa ini, auth.user.role
+    // selalu undefined di middleware walau token-nya sendiri sudah punya role.
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.role) {
+        session.user.role = token.role;
+      }
+      return session;
+    },
   },
   providers: [], // diisi di auth.ts (Credentials provider butuh akses db)
 } satisfies NextAuthConfig;

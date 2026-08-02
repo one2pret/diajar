@@ -1,0 +1,16 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: diajar_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: diajar
+      POSTGRES_PASSWORD: diajar
+      POSTGRES_DB: diajar_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - diajar_db_data:/var/lib/postgresql/data
+
+volumes:
+  diajar_db_data:

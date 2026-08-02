@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { compare } from "bcryptjs";
 import { z } from "zod";
 import { db } from "./db";
 import { users } from "./db/schema";
@@ -20,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const { email } = parsed.data;
+        const { email, password } = parsed.data;
         const [user] = await db
           .select()
           .from(users)
@@ -29,8 +30,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user) return null;
 
-        // TODO: bandingkan password dengan bcrypt.compare()
-        // sebelum dipakai production, ganti placeholder ini.
+        const passwordMatches = await compare(password, user.passwordHash);
+        if (!passwordMatches) return null;
 
         return {
           id: user.id,
@@ -41,19 +42,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    ...authConfig.callbacks,
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.role) {
-        session.user.role = token.role;
-      }
-      return session;
-    },
-  },
+  callbacks: authConfig.callbacks,
 });
