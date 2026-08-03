@@ -43,8 +43,11 @@ export async function answerQuestionAboutModule(
     .join("\n\n");
 
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6", // pakai model terbaru yang tersedia saat development
-    max_tokens: 500,
+    model: "claude-sonnet-5",
+    max_tokens: 1024,
+    // Q&A ekstraktif pendek dari transcript — thinking dimatikan untuk latency
+    // & biaya yang terkontrol (lihat AI Feature Rules di CLAUDE.md).
+    thinking: { type: "disabled" },
     system: SYSTEM_PROMPT,
     messages: [
       {

@@ -10,12 +10,39 @@ const bodySchema = z.object({
   question: z.string().min(1).max(1000),
 });
 
-// TODO: tambahkan rate limiting per user di sini sebelum production
-// (biaya Claude API + Voyage API harus terkontrol — lihat catatan di CLAUDE.md).
+// Rate limit sederhana in-memory: sliding window per user (biaya API harus
+// terkontrol sejak awal — CLAUDE.md AI Feature Rules). Catatan: reset tiap
+// server restart & tidak share antar instance — cukup untuk 1 VPS. Kalau nanti
+// scale multi-instance, ganti ke Redis/Upstash.
+const RATE_LIMIT_MAX = 10; // pertanyaan
+const RATE_LIMIT_WINDOW_MS = 60_000; // per 1 menit
+const requestLog = new Map<string, number[]>();
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const recent = (requestLog.get(userId) ?? []).filter(
+    (ts) => now - ts < RATE_LIMIT_WINDOW_MS
+  );
+  if (recent.length >= RATE_LIMIT_MAX) {
+    requestLog.set(userId, recent);
+    return true;
+  }
+  recent.push(now);
+  requestLog.set(userId, recent);
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (isRateLimited(session.user.id)) {
+    return NextResponse.json(
+      { success: false, error: "Terlalu banyak pertanyaan, tunggu sebentar." },
+      { status: 429 }
+    );
   }
 
   const json = await req.json();
@@ -28,7 +55,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { moduleId, question } = parsed.data;
-  const userId = session.user.id as string;
+  const userId = session.user.id;
 
   try {
     const { answer, retrievedChunks } = await answerQuestionAboutModule(moduleId, question);

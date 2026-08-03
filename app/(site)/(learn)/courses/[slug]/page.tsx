@@ -90,14 +90,14 @@ export default async function CourseDetailPage({
           </div>
 
           <div className="h-[420px] lg:hidden">
-            {firstModule && <AiChatPanel moduleTitle={firstModule.title} />}
+            {firstModule && <AiChatPanel moduleId={firstModule.id} moduleTitle={firstModule.title} />}
           </div>
         </div>
 
         <aside className="hidden flex-col gap-6 lg:flex">
           <ModuleSidebar modules={course.modules} activeModuleId={firstModule?.id ?? ""} />
           <div className="h-[480px]">
-            {firstModule && <AiChatPanel moduleTitle={firstModule.title} />}
+            {firstModule && <AiChatPanel moduleId={firstModule.id} moduleTitle={firstModule.title} />}
           </div>
         </aside>
       </div>

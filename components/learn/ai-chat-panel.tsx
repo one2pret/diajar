@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Fragment, useState } from "react";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { seekVideoTo } from "@/components/learn/video-player";
 
 interface ChatMessage {
   id: string;
@@ -10,17 +11,58 @@ interface ChatMessage {
   content: string;
 }
 
-const DUMMY_ANSWER =
-  "Berdasarkan transcript video ini, konsep tersebut dijelaskan sekitar menit 04:12 — " +
-  "singkatnya, teknik ini bekerja dengan memecah instruksi jadi langkah kecil supaya model " +
-  "lebih konsisten menjawab. (Ini masih jawaban simulasi — belum tersambung ke AI asli.)";
+/** Cocokkan timestamp mm:ss atau h:mm:ss dalam teks jawaban. */
+const TIMESTAMP_REGEX = /\b(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\b/g;
 
-export function AiChatPanel({ moduleTitle }: { moduleTitle: string }) {
+function timestampToSeconds(h: string | undefined, m: string, s: string): number {
+  return (Number(h) || 0) * 3600 + Number(m) * 60 + Number(s);
+}
+
+/** Render teks jawaban dengan timestamp jadi tombol yang seek video. */
+function renderWithTimestamps(text: string) {
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  TIMESTAMP_REGEX.lastIndex = 0;
+
+  while ((match = TIMESTAMP_REGEX.exec(text)) !== null) {
+    const [full, hh, mm, ss] = match;
+    if (match.index > lastIndex) {
+      parts.push(<Fragment key={`t-${lastIndex}`}>{text.slice(lastIndex, match.index)}</Fragment>);
+    }
+    const seconds = timestampToSeconds(hh, mm, ss);
+    parts.push(
+      <button
+        key={`ts-${match.index}`}
+        type="button"
+        onClick={() => seekVideoTo(seconds)}
+        className="mx-0.5 inline-flex items-center rounded border border-primary/40 bg-primary-subtle px-1 font-mono text-xs text-primary hover:bg-primary hover:text-primary-foreground"
+      >
+        {full}
+      </button>
+    );
+    lastIndex = match.index + full.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(<Fragment key={`t-end`}>{text.slice(lastIndex)}</Fragment>);
+  }
+  return parts;
+}
+
+export function AiChatPanel({
+  moduleId,
+  moduleTitle,
+}: {
+  moduleId: string;
+  moduleTitle: string;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const question = input.trim();
     if (!question || isLoading) return;
@@ -33,17 +75,36 @@ export function AiChatPanel({ moduleTitle }: { moduleTitle: string }) {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setError(null);
 
-    // TODO: ganti simulasi ini dengan fetch POST ke /api/ai-chat (Fase 6)
-    setTimeout(() => {
-      const assistantMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: DUMMY_ANSWER,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+    try {
+      const res = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleId, question }),
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        if (res.status === 401) {
+          setError("Masuk dulu untuk memakai AI Q&A.");
+        } else if (res.status === 429) {
+          setError("Terlalu banyak pertanyaan. Tunggu sebentar lalu coba lagi.");
+        } else {
+          setError(json.error ?? "Gagal memproses pertanyaan, coba lagi.");
+        }
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: json.data.answer },
+      ]);
+    } catch {
+      setError("Gagal terhubung ke server. Coba lagi.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   }
 
   return (
@@ -60,7 +121,8 @@ export function AiChatPanel({ moduleTitle }: { moduleTitle: string }) {
         {messages.length === 0 && (
           <p className="text-sm leading-normal text-muted-foreground">
             Bingung sama bagian tertentu di video? Tanya di sini — jawabannya digali dari
-            transcript video ini, bukan dari pengetahuan umum.
+            transcript video ini, bukan dari pengetahuan umum. Timestamp di jawaban bisa diklik
+            untuk lompat ke bagian itu.
           </p>
         )}
 
@@ -71,13 +133,15 @@ export function AiChatPanel({ moduleTitle }: { moduleTitle: string }) {
           >
             <div
               className={cn(
-                "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-normal",
+                "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm leading-normal",
                 message.role === "user"
                   ? "bg-primary-subtle text-foreground"
                   : "border border-border bg-background text-foreground"
               )}
             >
-              {message.content}
+              {message.role === "assistant"
+                ? renderWithTimestamps(message.content)
+                : message.content}
             </div>
           </div>
         ))}
@@ -90,6 +154,8 @@ export function AiChatPanel({ moduleTitle }: { moduleTitle: string }) {
             </div>
           </div>
         )}
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-border p-3">
