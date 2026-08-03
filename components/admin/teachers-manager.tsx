@@ -1,43 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
-import type { DummyTeacher } from "@/lib/dummy-data";
-import { TeacherFormModal } from "@/components/admin/teacher-form-modal";
+import { createTeacher, updateTeacher, deleteTeacher } from "@/app/actions/teachers";
+import { TeacherFormModal, type TeacherFormValues } from "@/components/admin/teacher-form-modal";
 
-export function TeachersManager({ initialTeachers }: { initialTeachers: DummyTeacher[] }) {
-  const [teachers, setTeachers] = useState<DummyTeacher[]>(initialTeachers);
-  const [editingTeacher, setEditingTeacher] = useState<DummyTeacher | undefined>(undefined);
+export interface TeacherRow {
+  id: string;
+  channelName: string;
+  channelUrl: string;
+  avatarUrl: string | null;
+  bio: string | null;
+}
+
+export function TeachersManager({ teachers }: { teachers: TeacherRow[] }) {
+  const router = useRouter();
+  const [editingTeacher, setEditingTeacher] = useState<TeacherFormValues | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   function openCreateModal() {
     setEditingTeacher(undefined);
+    setModalError(null);
     setIsModalOpen(true);
   }
 
-  function openEditModal(teacher: DummyTeacher) {
-    setEditingTeacher(teacher);
+  function openEditModal(teacher: TeacherRow) {
+    setEditingTeacher({
+      id: teacher.id,
+      channelName: teacher.channelName,
+      channelUrl: teacher.channelUrl,
+      avatarUrl: teacher.avatarUrl ?? "",
+      bio: teacher.bio ?? "",
+    });
+    setModalError(null);
     setIsModalOpen(true);
   }
 
-  function handleSave(data: Omit<DummyTeacher, "id"> & { id?: string }) {
-    // TODO: connect to database — ganti setTeachers ini dengan Server Action createTeacher/updateTeacher
-    if (data.id) {
-      setTeachers((prev) =>
-        prev.map((t) => (t.id === data.id ? { ...t, ...data, id: data.id! } : t))
-      );
-    } else {
-      setTeachers((prev) => [...prev, { ...data, id: crypto.randomUUID() }]);
-    }
-    setIsModalOpen(false);
+  function handleSave(data: TeacherFormValues) {
+    startTransition(async () => {
+      const result = data.id
+        ? await updateTeacher(data.id, data)
+        : await createTeacher(data);
+
+      if (result.success) {
+        setIsModalOpen(false);
+        router.refresh();
+      } else {
+        setModalError(result.error);
+      }
+    });
   }
 
-  function handleDelete(id: string) {
-    // TODO: connect to database — ganti setTeachers ini dengan Server Action deleteTeacher
-    if (confirm("Hapus teacher ini? Course yang memakai teacher ini perlu dicek manual.")) {
-      setTeachers((prev) => prev.filter((t) => t.id !== id));
+  function handleDelete(id: string, name: string) {
+    if (!confirm(`Hapus teacher "${name}"? Course yang memakai teacher ini perlu dicek manual.`)) {
+      return;
     }
+    startTransition(async () => {
+      const result = await deleteTeacher(id);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error);
+      }
+    });
   }
 
   return (
@@ -75,7 +104,7 @@ export function TeachersManager({ initialTeachers }: { initialTeachers: DummyTea
                   <div className="flex items-center gap-3">
                     <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
                       <Image
-                        src={teacher.avatarUrl}
+                        src={teacher.avatarUrl || "https://i.pravatar.cc/150"}
                         alt={teacher.channelName}
                         fill
                         className="object-cover"
@@ -109,9 +138,10 @@ export function TeachersManager({ initialTeachers }: { initialTeachers: DummyTea
                       <Pencil size={15} strokeWidth={1.75} />
                     </button>
                     <button
-                      onClick={() => handleDelete(teacher.id)}
+                      onClick={() => handleDelete(teacher.id, teacher.channelName)}
+                      disabled={isPending}
                       aria-label={`Hapus ${teacher.channelName}`}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
                     >
                       <Trash2 size={15} strokeWidth={1.75} />
                     </button>
@@ -136,6 +166,8 @@ export function TeachersManager({ initialTeachers }: { initialTeachers: DummyTea
           initialTeacher={editingTeacher}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
+          error={modalError}
+          isSaving={isPending}
         />
       )}
     </div>

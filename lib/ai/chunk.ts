@@ -3,8 +3,8 @@ import type { TranscriptSegment } from "@/lib/youtube";
 export interface Chunk {
   chunkIndex: number;
   content: string;
-  startSeconds: number;
-  endSeconds: number;
+  startSeconds: number | null;
+  endSeconds: number | null;
 }
 
 /**
@@ -42,6 +42,41 @@ export function chunkTranscript(
     if (bufferLength >= targetChars) flush();
   }
   flush(); // sisa terakhir
+
+  return chunks;
+}
+
+/**
+ * Chunk teks polos (hasil paste manual admin, tanpa timestamp per baris).
+ * startSeconds/endSeconds selalu null — fitur "lompat ke bagian ini" di AI
+ * chat tidak berlaku untuk chunk hasil paste manual.
+ */
+export function chunkPlainText(text: string, targetChars = 1000): Chunk[] {
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const chunks: Chunk[] = [];
+  let buffer = "";
+  let chunkIndex = 0;
+
+  const flush = () => {
+    if (!buffer.trim()) return;
+    chunks.push({
+      chunkIndex: chunkIndex++,
+      content: buffer.trim(),
+      startSeconds: null,
+      endSeconds: null,
+    });
+    buffer = "";
+  };
+
+  for (const paragraph of paragraphs) {
+    if (buffer.length + paragraph.length >= targetChars) flush();
+    buffer += (buffer ? "\n\n" : "") + paragraph;
+  }
+  flush();
 
   return chunks;
 }

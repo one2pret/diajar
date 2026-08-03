@@ -2,32 +2,50 @@
 
 import { FormEvent, useState } from "react";
 import { X } from "lucide-react";
-import type { DummyTeacher } from "@/lib/dummy-data";
 
-interface TeacherFormModalProps {
-  initialTeacher?: DummyTeacher;
-  onClose: () => void;
-  onSave: (teacher: Omit<DummyTeacher, "id"> & { id?: string }) => void;
+export interface TeacherFormValues {
+  id?: string;
+  channelName: string;
+  channelUrl: string;
+  avatarUrl: string;
+  bio: string;
 }
 
-export function TeacherFormModal({ initialTeacher, onClose, onSave }: TeacherFormModalProps) {
+interface TeacherFormModalProps {
+  initialTeacher?: TeacherFormValues;
+  onClose: () => void;
+  onSave: (teacher: TeacherFormValues) => void;
+  error?: string | null;
+  isSaving?: boolean;
+}
+
+export function TeacherFormModal({
+  initialTeacher,
+  onClose,
+  onSave,
+  error: externalError,
+  isSaving,
+}: TeacherFormModalProps) {
   const [channelName, setChannelName] = useState(initialTeacher?.channelName ?? "");
   const [channelUrl, setChannelUrl] = useState(initialTeacher?.channelUrl ?? "");
   const [avatarUrl, setAvatarUrl] = useState(initialTeacher?.avatarUrl ?? "");
   const [bio, setBio] = useState(initialTeacher?.bio ?? "");
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const error = formError ?? externalError;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
     if (!channelName.trim() || !channelUrl.trim()) {
-      setError("Nama channel dan URL channel wajib diisi.");
+      setFormError("Nama channel dan URL channel wajib diisi.");
       return;
     }
     if (!channelUrl.startsWith("http")) {
-      setError("URL channel harus diawali http:// atau https://");
+      setFormError("URL channel harus diawali http:// atau https://");
       return;
     }
+    setFormError(null);
 
     onSave({
       id: initialTeacher?.id,
@@ -121,9 +139,10 @@ export function TeacherFormModal({ initialTeacher, onClose, onSave }: TeacherFor
             </button>
             <button
               type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+              disabled={isSaving}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
             >
-              Simpan
+              {isSaving ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>
