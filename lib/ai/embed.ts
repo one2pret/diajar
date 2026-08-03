@@ -1,28 +1,27 @@
-import { VoyageAIClient } from "voyageai";
+import { getEmbeddingClient, EMBEDDING_MODEL, EMBEDDING_DIMENSIONS } from "./client";
 
 /**
- * Anthropic (Claude API) tidak menyediakan embedding model sendiri — resmi
- * merekomendasikan Voyage AI untuk kebutuhan ini. Claude tetap dipakai di
- * lib/ai/qa.ts untuk generate jawaban dari hasil retrieval.
+ * Embedding via provider OpenAI-compatible (mis. Sumopod → text-embedding-3-small).
+ * Model & dimensi diambil dari env (lihat lib/ai/client.ts).
  */
-const client = new VoyageAIClient({ apiKey: process.env.VOYAGE_API_KEY });
 
 /** Embed banyak teks sekaligus — dipakai saat admin menyimpan modul baru. */
 export async function embedDocuments(texts: string[]): Promise<number[][]> {
-  const result = await client.embed({
+  if (texts.length === 0) return [];
+  const result = await getEmbeddingClient().embeddings.create({
+    model: EMBEDDING_MODEL,
     input: texts,
-    model: "voyage-4",
-    inputType: "document",
+    dimensions: EMBEDDING_DIMENSIONS,
   });
-  return (result.data ?? []).map((d) => d.embedding ?? []);
+  return result.data.map((d) => d.embedding);
 }
 
 /** Embed satu query pertanyaan user — dipakai saat AI Q&A. */
 export async function embedQuery(text: string): Promise<number[]> {
-  const result = await client.embed({
-    input: [text],
-    model: "voyage-4",
-    inputType: "query",
+  const result = await getEmbeddingClient().embeddings.create({
+    model: EMBEDDING_MODEL,
+    input: text,
+    dimensions: EMBEDDING_DIMENSIONS,
   });
-  return result.data?.[0]?.embedding ?? [];
+  return result.data[0]?.embedding ?? [];
 }

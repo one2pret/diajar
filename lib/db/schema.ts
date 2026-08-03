@@ -85,7 +85,7 @@ export const transcriptChunks = pgTable("transcript_chunks", {
   startSeconds: integer("start_seconds"),
   endSeconds: integer("end_seconds"),
   content: text("content").notNull(),
-  embedding: vector("embedding", { dimensions: 1024 }), // Voyage AI voyage-4
+  embedding: vector("embedding", { dimensions: 1536 }), // OpenAI text-embedding-3-small (via Sumopod)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

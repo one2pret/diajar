@@ -1,8 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { getAiClient, AI_MODEL } from "./client";
 import { embedQuery } from "./embed";
 import { retrieveRelevantChunks, type RetrievedChunk } from "./retrieve";
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const SYSTEM_PROMPT = `Kamu adalah asisten belajar yang menjawab pertanyaan peserta HANYA
 berdasarkan potongan transcript video yang diberikan di bawah ini. Aturan:
@@ -42,14 +40,13 @@ export async function answerQuestionAboutModule(
     .map((c) => `[${formatTimestamp(c.startSeconds)}] ${c.content}`)
     .join("\n\n");
 
-  const message = await anthropic.messages.create({
-    model: "claude-sonnet-5",
+  // Chat completions OpenAI-compatible — model diambil dari env (AI_MODEL),
+  // jadi provider/model (deepseek, gpt, dll) bisa diganti tanpa ubah kode.
+  const completion = await getAiClient().chat.completions.create({
+    model: AI_MODEL,
     max_tokens: 1024,
-    // Q&A ekstraktif pendek dari transcript — thinking dimatikan untuk latency
-    // & biaya yang terkontrol (lihat AI Feature Rules di CLAUDE.md).
-    thinking: { type: "disabled" },
-    system: SYSTEM_PROMPT,
     messages: [
+      { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
         content: `Potongan transcript video:\n\n${context}\n\nPertanyaan peserta: ${question}`,
@@ -57,10 +54,7 @@ export async function answerQuestionAboutModule(
     ],
   });
 
-  const answer = message.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
+  const answer = completion.choices[0]?.message?.content ?? "";
 
   return { answer, retrievedChunks: chunks };
 }

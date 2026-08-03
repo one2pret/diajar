@@ -24,13 +24,14 @@ async function storeChunks(moduleId: string, chunks: Chunk[]): Promise<IngestRes
   let embeddings: number[][] | null = null;
   let embedError: string | null = null;
 
-  if (!process.env.VOYAGE_API_KEY) {
-    embedError = "VOYAGE_API_KEY belum diset";
+  const embeddingKey = process.env.EMBEDDING_API_KEY ?? process.env.AI_API_KEY;
+  if (!embeddingKey) {
+    embedError = "AI_API_KEY / EMBEDDING_API_KEY belum diset";
   } else {
     try {
       embeddings = await embedDocuments(chunks.map((c) => c.content));
     } catch (error) {
-      embedError = error instanceof Error ? error.message : "gagal memanggil Voyage AI";
+      embedError = error instanceof Error ? error.message : "gagal memanggil provider embedding";
     }
   }
 
