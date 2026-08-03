@@ -105,6 +105,11 @@ AUTH_SECRET=ISI_HASIL_openssl_rand_base64_32
 AUTH_URL=https://diajar.web.id
 AUTH_TRUST_HOST=true
 
+# Password akun seed — WAJIB diisi, generate baru per environment.
+# Contoh generate: openssl rand -base64 18 | tr -d '=+/' | cut -c1-20
+SEED_ADMIN_PASSWORD=ISI_PASSWORD_KUAT
+SEED_DEMO_PASSWORD=ISI_PASSWORD_KUAT
+
 # AI generation (Sumopod / OpenAI-compatible)
 AI_BASE_URL=https://ai.sumopod.com/v1
 AI_API_KEY=sk-xxxxx
@@ -130,11 +135,12 @@ EOF
 ```bash
 cd /var/www/diajar
 pnpm db:push     # buat semua tabel (baca .env.local via drizzle.config.ts)
-pnpm db:seed     # admin + user demo + course contoh (opsional; ganti password default nanti)
+pnpm db:seed     # admin + user demo + course contoh (password dari SEED_*_PASSWORD di atas)
 ```
 
-Akun seed default (**ganti password-nya lewat DB / register ulang untuk produksi**):
-`admin@diajar.web.id / admin123`, `demo@diajar.web.id / demo1234`.
+`db:seed` menolak jalan kalau `SEED_ADMIN_PASSWORD`/`SEED_DEMO_PASSWORD` belum diisi — tidak ada
+password default yang bisa kepakai tidak sengaja di produksi. Simpan kedua password itu di
+password manager setelah seed selesai.
 
 ---
 
@@ -239,7 +245,8 @@ sudo tail -f /var/log/nginx/error.log
 
 ## Catatan keamanan produksi
 
-- Ganti password akun seed (`admin123`/`demo1234`) — jangan dipakai live.
+- Password akun seed sudah wajib diisi lewat `SEED_ADMIN_PASSWORD`/`SEED_DEMO_PASSWORD` sebelum
+  `db:seed` bisa jalan — pastikan isinya unik per environment (jangan reuse dari dev).
 - `.env.local` berisi rahasia — jangan pernah commit / bagikan.
 - Rate limit AI Q&A saat ini in-memory (reset tiap restart, per-instance). Cukup untuk 1 VPS; kalau scale multi-instance, pindah ke Redis.
 - Backup volume DB berkala: `docker exec diajar_db pg_dump -U diajar diajar_db > backup-$(date +%F).sql`.

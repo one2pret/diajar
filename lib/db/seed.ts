@@ -7,6 +7,17 @@
 process.loadEnvFile(".env.local");
 
 async function main() {
+  // Password akun seed WAJIB dari env — jangan pernah hardcode default di sini,
+  // supaya tidak ada kemungkinan password bawaan kepakai di produksi.
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  const demoPassword = process.env.SEED_DEMO_PASSWORD;
+  if (!adminPassword || !demoPassword) {
+    console.error(
+      "SEED_ADMIN_PASSWORD dan SEED_DEMO_PASSWORD harus diset di .env.local sebelum menjalankan seed."
+    );
+    process.exit(1);
+  }
+
   // Import dinamis SETELAH loadEnvFile — lib/db/index.ts membaca process.env.DATABASE_URL
   // saat modul di-load, jadi import statis biasa akan jalan lebih dulu (hoisted) dan gagal.
   const { hash } = await import("bcryptjs");
@@ -20,7 +31,7 @@ async function main() {
     .insert(users)
     .values({
       email: "admin@diajar.web.id",
-      passwordHash: await hash("admin123", 10),
+      passwordHash: await hash(adminPassword, 10),
       displayName: "Admin Diajar",
       role: "admin",
     })
@@ -30,7 +41,7 @@ async function main() {
     .insert(users)
     .values({
       email: "demo@diajar.web.id",
-      passwordHash: await hash("demo1234", 10),
+      passwordHash: await hash(demoPassword, 10),
       displayName: "User Demo",
       role: "user",
     })
