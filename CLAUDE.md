@@ -28,7 +28,7 @@ Niche awal: **Prompt Engineering + RAG untuk Developer**.
 - **ORM**: Drizzle ORM (`drizzle-kit` untuk migrations)
 - **Auth**: NextAuth v5 (beta) — Credentials provider, JWT strategy
 - **Validation**: Zod
-- **AI**: Anthropic SDK (Claude API) untuk Q&A + embedding pipeline
+- **AI**: SDK `openai` diarahkan ke gateway OpenAI-compatible (mis. Sumopod, `AI_BASE_URL`/`AI_MODEL` di env) untuk Q&A + embedding pipeline — model generation & embedding bebas diganti tanpa ubah kode
 - **Icons**: Lucide React
 - **Utils**: clsx + tailwind-merge (`cn()` helper di `lib/utils.ts`)
 
@@ -155,6 +155,6 @@ pnpm db:seed          # Seed sample data
 
 ## Deploy
 
-Ikuti pola dari `docs/DEPLOY-VPS-UBUNTU.md` (referensi project sebelumnya) — sama persis
-kecuali: ganti MySQL dengan PostgreSQL + ekstensi pgvector, dan tambahkan environment
-variable untuk Anthropic API key.
+Ikuti `docs/DEPLOY-VPS-UBUNTU.md`: Ubuntu + Node + PM2 + Nginx + Certbot, PostgreSQL +
+ekstensi pgvector via Docker Compose, dan environment variable `AI_*`/`EMBEDDING_*` untuk
+gateway AI (lihat `.env.example`).

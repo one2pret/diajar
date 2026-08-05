@@ -4,7 +4,8 @@ Platform kurasi course (agregator YouTube + AI Q&A) untuk niche
 **Prompt Engineering + RAG untuk Developer Indonesia**.
 
 - **Domain**: diajar.web.id (atau diajar.id)
-- **Stack**: Next.js 16 + TypeScript + Tailwind 4 + Drizzle + PostgreSQL/pgvector + NextAuth v5 + Claude API + Voyage AI
+- **Stack**: Next.js 16 + TypeScript + Tailwind 4 + Drizzle + PostgreSQL/pgvector + NextAuth v5 +
+  gateway AI OpenAI-compatible (mis. Sumopod — lihat `lib/ai/client.ts`)
 - **Alur kerja**: VS Code + Claude Code, ikuti aturan di `CLAUDE.md`
 - **Strategi**: **Frontend dulu dengan data dummy**, baru backend — supaya bisa validasi
   tampilan & alur produk sebelum invest waktu ke database/auth/AI pipeline.
@@ -240,7 +241,8 @@ Ikuti CLAUDE.md AI Feature Rules. Uji kedua kasus: pertanyaan terjawab & tidak t
 
 ### Catatan
 Pastikan PostgreSQL + extension pgvector terpasang di VPS (bukan MySQL), dan
-tambahkan `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `YOUTUBE_API_KEY` ke env production.
+tambahkan `AI_API_KEY`/`AI_MODEL`, `EMBEDDING_API_KEY`/`EMBEDDING_MODEL`, `YOUTUBE_API_KEY`
+ke env production — detail lengkap di `docs/DEPLOY-VPS-UBUNTU.md`.
 
 ---
 

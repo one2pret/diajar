@@ -16,6 +16,10 @@
 *.tsbuildinfo
 next-env.d.ts
 
+# graphify knowledge-graph output (regenerable, large)
+/graphify-out/
+.claude/scheduled_tasks.lock
+
 # misc
 .DS_Store
 *.pem
