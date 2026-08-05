@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { markModuleComplete } from "@/app/actions/progress";
+import { cn } from "@/lib/utils";
 
 export function MarkCompleteButton({
   moduleId,
@@ -50,13 +51,28 @@ export function MarkCompleteButton({
             : "border-border-strong text-foreground hover:bg-muted"
         }`}
       >
-        {isPending ? (
-          <Loader2 size={16} strokeWidth={1.75} className="animate-spin" />
-        ) : isCompleted ? (
-          <CheckCircle2 size={16} strokeWidth={1.75} />
-        ) : (
-          <Circle size={16} strokeWidth={1.75} />
-        )}
+        {/*
+          Ketiga ikon selalu di-mount, cuma di-toggle lewat CSS (bukan
+          conditional mount/unmount elemen berbeda tipe). Kalau elemen
+          berbeda tipe di-swap tepat saat Next.js auto-refresh RSC (karena
+          revalidatePath di markModuleComplete) berlangsung di transition
+          yang sama, React bisa gagal reconcile ("insertBefore" error).
+        */}
+        <Loader2
+          size={16}
+          strokeWidth={1.75}
+          className={cn("animate-spin", isPending ? "block" : "hidden")}
+        />
+        <CheckCircle2
+          size={16}
+          strokeWidth={1.75}
+          className={cn(!isPending && isCompleted ? "block" : "hidden")}
+        />
+        <Circle
+          size={16}
+          strokeWidth={1.75}
+          className={cn(!isPending && !isCompleted ? "block" : "hidden")}
+        />
         {isCompleted ? "Selesai" : "Tandai Selesai"}
       </button>
       {error && <p className="text-xs text-destructive">{error}</p>}
