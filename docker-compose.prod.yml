@@ -1,8 +1,14 @@
-# PostgreSQL + pgvector untuk PRODUKSI di VPS.
-# Beda dari docker-compose.yml (dev):
-#   - Port hanya di-bind ke 127.0.0.1 (tidak terekspos ke internet).
-#   - Password diambil dari env host (POSTGRES_PASSWORD), bukan hardcode.
-# Jalankan: POSTGRES_PASSWORD=xxx docker compose -f docker-compose.prod.yml up -d
+# Stack PRODUKSI Diajar untuk VPS yang sudah menjalankan app lain via Docker +
+# Nginx Proxy Manager (pola: tiap app publish port sendiri ke host, DB tidak
+# di-publish — NPM di-setting manual lewat web UI buat forward domain ke
+# VPS_IP:APP_PORT). Ikuti pola container lain di server ini (mis. onetone-app,
+# odoo19-app), bukan reverse-proxy Nginx manual.
+#
+# Jalankan:
+#   POSTGRES_PASSWORD=xxx docker compose -f docker-compose.prod.yml up -d --build
+#
+# APP_PORT default 8097 — cek dulu port itu belum kepakai (`ss -tlnp`) sebelum
+# deploy pertama kali; ganti kalau bentrok dengan app lain di server.
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -12,15 +18,41 @@ services:
       POSTGRES_USER: diajar
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
       POSTGRES_DB: diajar_db
-    ports:
-      - "127.0.0.1:5432:5432"
+    # Sengaja TIDAK di-publish ke host — cuma diakses container app lewat
+    # network privat di bawah, sama seperti onetone-db/odoo-db di server ini.
     volumes:
       - diajar_db_data:/var/lib/postgresql/data
+    networks:
+      - diajar_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U diajar -d diajar_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: diajar_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.local
+    environment:
+      # Overwrite DATABASE_URL: dari perspektif container app, host DB adalah
+      # nama service "db" (DNS internal Docker), BUKAN localhost/127.0.0.1.
+      DATABASE_URL: postgresql://diajar:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/diajar_db
+    ports:
+      - "${APP_PORT:-8097}:3000"
+    networks:
+      - diajar_net
+
+networks:
+  diajar_net:
+    driver: bridge
 
 volumes:
   diajar_db_data:

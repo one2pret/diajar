@@ -4,7 +4,13 @@
  *
  * Jalankan: pnpm db:seed
  */
-process.loadEnvFile(".env.local");
+// .env.local opsional — kalau env vars sudah di-inject langsung (mis. `docker
+// run -e`), gak perlu file .env.local sama sekali.
+try {
+  process.loadEnvFile(".env.local");
+} catch {
+  // biarkan, env vars diasumsikan sudah ada di process.env
+}
 
 async function main() {
   // Password akun seed WAJIB dari env — jangan pernah hardcode default di sini,
